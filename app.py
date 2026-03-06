@@ -1,410 +1,213 @@
 # ==========================================================
-# LogisticsNow AI Reconciliation Console
-# LR – POD – Invoice Matching Agent
-# Hackathon Prototype
+# LogisticsNow Exception Intelligence Console
+# AI-powered LR – POD – Invoice Reconciliation System
 # ==========================================================
 
-# -----------------------------
-# IMPORTS
-# -----------------------------
+import hashlib
+import logging
+from io import BytesIO
+from typing import Optional, Tuple
 
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
+
+from modules import data_cleaning
+from modules import data_loader
+from modules import fraud_detection
+from modules import insights_engine
+from modules import reconciliation_engine
+from modules import risk_engine
+from modules import validators
+from ui import dashboard
+from ui import finance
+from ui import fraud
+from ui import operations
+from ui import shipment_analysis
+from ui import control_tower_views
+from ui.brand_css import BRAND_CSS, BRAND_TAGLINE_HTML
+
+# -----------------------------
+# LOGGING
+# -----------------------------
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
-
 st.set_page_config(
-    page_title="LogisticsNow AI Reconciliation",
-    layout="wide"
+    page_title="LogisticsNow Intelligence Console",
+    layout="wide",
 )
 
 # -----------------------------
-# HEADER STYLE
+# HEADER
 # -----------------------------
-
 st.markdown("""
 <style>
-.main-title {
-    font-size:38px;
-    font-weight:bold;
-    color:#2E7D32;
-}
-.sub-title {
-    font-size:18px;
-    color:gray;
-}
+.main-title { font-size:38px; font-weight:bold; color:#2E7D32; }
+.sub-title { font-size:18px; color:gray; }
 </style>
 """, unsafe_allow_html=True)
-
 st.markdown('<p class="main-title">LogisticsNow Exception Intelligence Console</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">AI Powered LR–POD–Invoice Reconciliation System</p>', unsafe_allow_html=True)
-
+# Brand design system and tagline (LogisticsNow AI Console)
+st.markdown(BRAND_CSS, unsafe_allow_html=True)
+st.markdown(BRAND_TAGLINE_HTML, unsafe_allow_html=True)
 st.divider()
 
-# ==========================================================
+# -----------------------------
 # DATA UPLOAD
-# ==========================================================
-
+# -----------------------------
 st.subheader("Upload Logistics Documents")
-
 col1, col2, col3 = st.columns(3)
-
 with col1:
     lr_file = st.file_uploader("Upload LR Dataset", type="csv")
-
 with col2:
     pod_file = st.file_uploader("Upload POD Dataset", type="csv")
-
 with col3:
     invoice_file = st.file_uploader("Upload Invoice Dataset", type="csv")
 
-# ==========================================================
-# PROCESS DATA
-# ==========================================================
 
+def _upload_hash(lr_file, pod_file, invoice_file) -> str:
+    """Stable hash of uploads for cache key."""
+    def read(f):
+        if f is None:
+            return b""
+        f.seek(0)
+        return f.read()
+    h = hashlib.sha256()
+    h.update(read(lr_file))
+    h.update(read(pod_file))
+    h.update(read(invoice_file))
+    return h.hexdigest()
+
+
+@st.cache_data(ttl=3600)
+def _load_and_pipeline(cache_key: str, lr_bytes: bytes, pod_bytes: bytes, inv_bytes: bytes) -> Tuple[Optional[object], Optional[object], Optional[object]]:
+    """Load CSVs and run full pipeline; returns (merged_clean, fraud_flags, context_dict)."""
+    import pandas as pd
+    from io import BytesIO
+    if not lr_bytes or not pod_bytes or not inv_bytes:
+        return None, None, None
+    lr_df = pd.read_csv(BytesIO(lr_bytes))
+    pod_df = pd.read_csv(BytesIO(pod_bytes))
+    inv_df = pd.read_csv(BytesIO(inv_bytes))
+    merged = reconciliation_engine.merge_documents(lr_df, pod_df, inv_df)
+    merged = reconciliation_engine.detect_discrepancies(merged)
+    merged = validators.validate_and_normalize_merged(merged)
+    merged = data_cleaning.clean_dataset(merged)
+    merged = data_cleaning.strip_validation_columns(merged)
+    merged = risk_engine.run_risk_pipeline(merged)
+    fraud_flags = fraud_detection.run_fraud_detection(merged)
+    context = {
+        "carrier_risk": insights_engine.carrier_risk_score(merged),
+        "driver_risk": insights_engine.driver_risk_score(merged),
+        "lane_risk": insights_engine.lane_risk_score(merged),
+        "delay_trends": insights_engine.shipment_delay_trends(merged),
+        "heatmap_data": insights_engine.financial_exposure_heatmap_data(merged),
+        "insights_summary": insights_engine.auto_investigation_summary(merged),
+    }
+    return merged, fraud_flags, context
+
+
+# -----------------------------
+# PROCESS AND NAVIGATION
+# -----------------------------
 if lr_file and pod_file and invoice_file:
+    cache_key = _upload_hash(lr_file, pod_file, invoice_file)
+    lr_file.seek(0)
+    pod_file.seek(0)
+    invoice_file.seek(0)
+    lr_bytes = lr_file.read()
+    pod_bytes = pod_file.read()
+    inv_bytes = invoice_file.read()
+    merged, fraud_flags, context = _load_and_pipeline(cache_key, lr_bytes, pod_bytes, inv_bytes)
 
-    lr_df = pd.read_csv(lr_file)
-    pod_df = pd.read_csv(pod_file)
-    inv_df = pd.read_csv(invoice_file)
+    if merged is None or merged.empty:
+        st.warning("Pipeline produced no data. Check file formats.")
+    else:
+        # Top navigation (Logistics Control Tower) - session state
+        if "show_top_nav_content" not in st.session_state:
+            st.session_state.show_top_nav_content = True
+        if "top_nav_page" not in st.session_state:
+            st.session_state.top_nav_page = "Control Tower"
+        if "prev_sidebar_page" not in st.session_state:
+            st.session_state.prev_sidebar_page = None
 
-    merged = lr_df.merge(pod_df, on="Shipment_ID", how="left")
-    merged = merged.merge(inv_df, on="Shipment_ID", how="left")
-
-    # ======================================================
-    # DISCREPANCY DETECTION
-    # ======================================================
-
-    merged["Quantity_Difference"] = abs(
-        merged["Package_Count"] - merged["Received_Packages"]
-    )
-
-    merged["Expected_Amount"] = (
-        merged["Freight"] +
-        merged["Loading_Charges"] +
-        merged["Unloading_Charges"]
-    )
-
-    merged["Invoice_Difference"] = abs(
-        merged["Expected_Amount"] - merged["Total_Invoice_Amount"]
-    )
-
-    merged["Weight_Difference"] = abs(
-        merged["Weight_KG"] - merged["Charged_Weight"]
-    )
-
-    merged["Dispatch_Date"] = pd.to_datetime(merged["Dispatch_Date"])
-    merged["Delivery_Date"] = pd.to_datetime(merged["Delivery_Date"])
-
-    merged["Delivery_Delay_Days"] = (
-        merged["Delivery_Date"] - merged["Dispatch_Date"]
-    ).dt.days
-
-    merged["Missing_Signature"] = merged["Signature_Available"] == "No"
-    merged["POD_Missing"] = merged["Status"] != "Delivered"
-
-    # ======================================================
-    # RISK SCORE
-    # ======================================================
-
-    merged["Risk_Score"] = (
-        merged["Quantity_Difference"] * 3 +
-        merged["Invoice_Difference"] * 0.1 +
-        merged["Delivery_Delay_Days"] * 5 +
-        merged["Weight_Difference"] * 0.05 +
-        merged["Missing_Signature"] * 10 +
-        merged["POD_Missing"] * 20
-    )
-
-    merged["Risk_Level"] = np.where(
-        merged["Risk_Score"] > 60, "High",
-        np.where(merged["Risk_Score"] > 25, "Medium", "Low")
-    )
-
-    # ======================================================
-    # ACTION RECOMMENDATION AGENT
-    # ======================================================
-
-    def recommend_action(row):
-
-        if row["POD_Missing"]:
-            return "Request POD confirmation"
-
-        elif row["Quantity_Difference"] > 0:
-            return "Verify package count"
-
-        elif row["Invoice_Difference"] > 100:
-            return "Investigate invoice mismatch"
-
-        elif row["Delivery_Delay_Days"] > 2:
-            return "Review carrier performance"
-
-        else:
-            return "Auto approve payment"
-
-    merged["Recommended_Action"] = merged.apply(recommend_action, axis=1)
-
-    # ======================================================
-    # AI EXPLANATION GENERATOR
-    # ======================================================
-
-    def generate_explanation(row):
-
-        return f"""
-Shipment {row['Shipment_ID']} has a **{row['Risk_Level']} risk profile**.
-
-Observations:
-• Quantity difference: {row['Quantity_Difference']}
-• Invoice discrepancy: ₹{int(row['Invoice_Difference'])}
-• Delivery delay: {row['Delivery_Delay_Days']} days
-• Weight mismatch: {round(row['Weight_Difference'],2)} kg
-
-Recommended Action:
-{row['Recommended_Action']}
-"""
-
-    merged["AI_Explanation"] = merged.apply(generate_explanation, axis=1)
-
-    # ======================================================
-    # GLOBAL METRICS
-    # ======================================================
-
-    total_shipments = len(merged)
-    high_risk = len(merged[merged["Risk_Level"] == "High"])
-    medium_risk = len(merged[merged["Risk_Level"] == "Medium"])
-    discrepancy_value = merged["Invoice_Difference"].sum()
-
-    # ======================================================
-    # SIDEBAR NAVIGATION
-    # ======================================================
-
-    st.sidebar.title("LogisticsNow AI Console")
-
-    page = st.sidebar.radio(
-        "Navigation",
-        [
-            "Dashboard Overview",
-            "Shipment Risk Analysis",
-            "Operational Intelligence",
-            "Financial Intelligence",
-            "Fraud Detection"
+        TOP_NAV_PAGES = [
+            "Control Tower",
+            "Shipment Intelligence",
+            "Carrier Analytics",
+            "Route Intelligence",
+            "Financial Risk",
+            "Fraud Detection",
+            "AI Logistics Copilot",
         ]
-    )
-
-    # ======================================================
-    # PAGE 1 — DASHBOARD OVERVIEW
-    # ======================================================
-
-    if page == "Dashboard Overview":
-
-        st.subheader("Operational Overview")
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric("Total Shipments", total_shipments)
-        col2.metric("High Risk Shipments", high_risk)
-        col3.metric("Medium Risk Shipments", medium_risk)
-        col4.metric("Financial Risk ₹", int(discrepancy_value))
-
-        st.divider()
-
-        st.subheader("Risk Distribution")
-
-        fig = px.pie(
-            merged,
-            names="Risk_Level",
-            title="Shipment Risk Breakdown",
-            color="Risk_Level",
-            color_discrete_map={
-                "High":"red",
-                "Medium":"orange",
-                "Low":"green"
-            }
+        # Sidebar: Reports on top, then Control Tower buttons
+        st.sidebar.markdown("**LogisticsNow Intelligence Console**")
+        st.sidebar.markdown("---")
+        st.sidebar.markdown('<p class="ln-sidebar-heading">Reports</p>', unsafe_allow_html=True)
+        page = st.sidebar.selectbox(
+            "View",
+            [
+                "Executive Dashboard",
+                "Shipment Risk Analysis",
+                "Operational Intelligence",
+                "Financial Intelligence",
+                "Fraud & Compliance",
+            ],
+            key="sidebar_reports",
         )
+        st.sidebar.markdown("---")
+        st.sidebar.markdown('<p class="ln-sidebar-heading ln-sidebar-spaced">Logistics Control Tower</p>', unsafe_allow_html=True)
+        for i, name in enumerate(TOP_NAV_PAGES):
+            if st.sidebar.button(name, key=f"top_nav_{i}"):
+                st.session_state.show_top_nav_content = True
+                st.session_state.top_nav_page = name
+                st.rerun()
+        if page != st.session_state.prev_sidebar_page:
+            st.session_state.show_top_nav_content = False
+            st.session_state.prev_sidebar_page = page
 
-        st.plotly_chart(fig, use_container_width=True)
-
-        st.subheader("AI Generated Operational Insights")
-
-        insights = []
-
-        if high_risk > 40:
-            insights.append("Large number of high risk shipments detected.")
-
-        if merged["Delivery_Delay_Days"].mean() > 2:
-            insights.append("Delivery delays exceed expected service levels.")
-
-        if discrepancy_value > 100000:
-            insights.append("High financial discrepancy detected across invoices.")
-
-        for i in insights:
-            st.info(i)
-
-    # ======================================================
-    # PAGE 2 — SHIPMENT RISK ANALYSIS
-    # ======================================================
-
-    if page == "Shipment Risk Analysis":
-
-        st.subheader("Shipment Risk Overview")
-
-        risk_filter = st.selectbox(
-            "Filter by Risk Level",
-            ["All","High","Medium","Low"]
-        )
-
-        risk_table = merged.sort_values(by="Risk_Score", ascending=False)
-
-        if risk_filter != "All":
-            risk_table = risk_table[risk_table["Risk_Level"] == risk_filter]
-
-        display_cols = [
-            "Shipment_ID",
-            "Origin",
-            "Destination",
-            "Transport_Company",
-            "Driver_Name",
-            "Package_Count",
-            "Received_Packages",
-            "Total_Invoice_Amount",
-            "Risk_Level",
-            "Recommended_Action"
-        ]
-
-        st.dataframe(
-            risk_table[display_cols],
-            use_container_width=True,
-            height=350
-        )
-
-        st.divider()
-
-        st.subheader("Shipment Investigation")
-
-        selected = st.selectbox(
-            "Select Shipment",
-            merged["Shipment_ID"]
-        )
-
-        shipment = merged[merged["Shipment_ID"] == selected].iloc[0]
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            st.markdown("### Shipment Details")
-            st.write("Origin:", shipment["Origin"])
-            st.write("Destination:", shipment["Destination"])
-            st.write("Material:", shipment["Material"])
-
-        with col2:
-            st.markdown("### Transport Info")
-            st.write("Carrier:", shipment["Transport_Company"])
-            st.write("Driver:", shipment["Driver_Name"])
-            st.write("Vehicle:", shipment["Vehicle_Number"])
-
-        with col3:
-            st.markdown("### Risk Metrics")
-            st.write("Risk Level:", shipment["Risk_Level"])
-            st.write("Risk Score:", round(shipment["Risk_Score"],2))
-            st.write("Delivery Delay:", shipment["Delivery_Delay_Days"])
-
-        st.markdown("### AI Investigation Summary")
-        st.info(shipment["AI_Explanation"])
-
-    # ======================================================
-    # PAGE 3 — OPERATIONAL INTELLIGENCE
-    # ======================================================
-
-    if page == "Operational Intelligence":
-
-        st.subheader("Carrier Performance")
-
-        carrier_perf = merged.groupby("Transport_Company").agg({
-
-            "Shipment_ID":"count",
-            "Delivery_Delay_Days":"mean",
-            "Risk_Score":"mean"
-
-        }).reset_index()
-
-        fig = px.bar(
-            carrier_perf,
-            x="Transport_Company",
-            y="Risk_Score",
-            color="Risk_Score"
-        )
-
-        st.plotly_chart(fig)
-
-        st.subheader("Driver Performance")
-
-        driver_perf = merged.groupby("Driver_Name").agg({
-
-            "Shipment_ID":"count",
-            "Delivery_Delay_Days":"mean",
-            "Risk_Score":"mean"
-
-        }).reset_index()
-
-        st.dataframe(driver_perf.sort_values("Risk_Score",ascending=False))
-
-    # ======================================================
-    # PAGE 4 — FINANCIAL INTELLIGENCE
-    # ======================================================
-
-    if page == "Financial Intelligence":
-
-        st.subheader("Freight Cost Composition")
-
-        charges = merged[[
-            "Freight_Charge",
-            "Fuel_Surcharge",
-            "Tax"
-        ]].sum()
-
-        charges_df = charges.reset_index()
-        charges_df.columns = ["Charge Type","Amount"]
-
-        fig = px.pie(
-            charges_df,
-            names="Charge Type",
-            values="Amount"
-        )
-
-        st.plotly_chart(fig)
-
-        st.subheader("Financial Exposure")
-
-        st.metric(
-            "Total Invoice Discrepancy ₹",
-            int(discrepancy_value)
-        )
-
-    # ======================================================
-    # PAGE 5 — FRAUD DETECTION
-    # ======================================================
-
-    if page == "Fraud Detection":
-
-        st.subheader("Duplicate Invoices")
-
-        duplicates = merged[merged.duplicated("Invoice_ID", keep=False)]
-
-        st.dataframe(duplicates)
-
-        st.subheader("Missing POD or Signature")
-
-        pod_risk = merged[
-            (merged["Missing_Signature"]) |
-            (merged["POD_Missing"])
-        ]
-
-        st.dataframe(pod_risk)
-
+        if st.session_state.show_top_nav_content:
+            p = st.session_state.top_nav_page
+            if p == "Control Tower":
+                control_tower_views.render_control_tower(merged, context)
+            elif p == "Shipment Intelligence":
+                control_tower_views.render_shipment_intelligence(merged, context)
+            elif p == "Carrier Analytics":
+                control_tower_views.render_carrier_analytics(merged, context)
+            elif p == "Route Intelligence":
+                control_tower_views.render_route_intelligence(merged, context)
+            elif p == "Financial Risk":
+                control_tower_views.render_financial_risk(merged, context)
+            elif p == "Fraud Detection":
+                control_tower_views.render_fraud_pattern_analysis(merged, context)
+            elif p == "AI Logistics Copilot":
+                control_tower_views.render_ai_copilot(merged, context)
+        elif page == "Executive Dashboard":
+            dashboard.render(
+                merged,
+                insights_summary=context.get("insights_summary"),
+                carrier_risk=context.get("carrier_risk"),
+                delay_trends=context.get("delay_trends"),
+            )
+        elif page == "Shipment Risk Analysis":
+            shipment_analysis.render(merged)
+        elif page == "Operational Intelligence":
+            operations.render(
+                merged,
+                carrier_risk=context.get("carrier_risk"),
+                driver_risk=context.get("driver_risk"),
+                lane_risk=context.get("lane_risk"),
+                delay_trends=context.get("delay_trends"),
+            )
+        elif page == "Financial Intelligence":
+            finance.render(merged, heatmap_data=context.get("heatmap_data"))
+        elif page == "Fraud & Compliance":
+            fraud.render(merged, fraud_flags=fraud_flags)
 else:
-
     st.info("Upload LR, POD and Invoice datasets to begin reconciliation.")
