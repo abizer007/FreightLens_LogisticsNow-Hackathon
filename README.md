@@ -1,4 +1,4 @@
-# FreightLens Intelligence Console
+# FreightLens Intelligence Consol
 
 **AI-Powered LR–POD–Invoice Reconciliation System**
 
