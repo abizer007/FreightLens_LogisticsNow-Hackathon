@@ -282,7 +282,7 @@ def render_ai_copilot(merged: pd.DataFrame, context: Optional[Dict[str, Any]] = 
     if merged.empty:
         st.info("No data to display.")
         return
-    _section_header("AI Logistics Copilot")
+    _section_header("Freggie Assist")
     st.caption("Ask a question (rule-based responses from your data).")
     q = st.text_input("Ask a question", placeholder="e.g. Which carriers are causing delays?")
     if q:

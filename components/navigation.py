@@ -19,7 +19,7 @@ CONTROL_TOWER_NAV: List[NavItem] = [
     NavItem("route_intelligence", "Route Intelligence", "🛣️"),
     NavItem("financial_risk", "Financial Risk", "💰"),
     NavItem("fraud_detection", "Fraud Detection", "🔍"),
-    NavItem("ai_copilot", "AI Logistics Copilot", "🤖"),
+    NavItem("ai_copilot", "Freggie Assist", "🤖"),
     NavItem("generate_intelligence_report", "Generate Intelligence Report", "📄"),
 ]
 
@@ -31,7 +31,7 @@ NAV_ID_TO_PAGE_NAME = {
     "route_intelligence": "Route Intelligence",
     "financial_risk": "Financial Risk",
     "fraud_detection": "Fraud Detection",
-    "ai_copilot": "AI Logistics Copilot",
+    "ai_copilot": "Freggie Assist",
     "generate_intelligence_report": "Generate Intelligence Report",
 }
 

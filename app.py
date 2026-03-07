@@ -236,7 +236,7 @@ if lr_file and pod_file and invoice_file:
                 control_tower_views.render_financial_risk(merged, context)
             elif p == "Fraud Detection":
                 control_tower_views.render_fraud_pattern_analysis(merged, context)
-            elif p == "AI Logistics Copilot":
+            elif p == "Freggie Assist":
                 control_tower_views.render_ai_copilot(merged, context)
             elif p == "Generate Intelligence Report":
                 report_panel.render_report_panel(merged, context, fraud_flags)

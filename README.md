@@ -6,6 +6,8 @@
 
 **FreightLens** is the official product name.
 
+**Repository:** [github.com/abizer007/AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent_LogisticsNow-Hackathon](https://github.com/abizer007/AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent_LogisticsNow-Hackathon)
+
 ---
 
 ## Team Members
@@ -51,7 +53,7 @@ The **FreightLens Intelligence Console** is a production-style prototype for log
 - **Four-level risk classification** (Low, Medium, High, Critical)
 - **Fraud detection** (duplicate invoices, repeated driver/carrier anomalies, cost inflation, repeated missing PODs)
 - **Operational analytics** (carrier/driver/lane risk, delay trends, POD compliance)
-- **Executive dashboard** and **FreightLens Control Tower** views (Overview, Shipment Intelligence, Carrier Analytics, Route Intelligence, Financial Risk, Fraud Detection, AI Logistics Copilot)
+- **Executive dashboard** and **FreightLens Control Tower** views (Overview, Shipment Intelligence, Carrier Analytics, Route Intelligence, Financial Risk, Fraud Detection, Freggie Assist)
 - **Enterprise Intelligence Report** – generate a full multi-section PDF report (executive summary, shipment/carrier/route/financial/fraud analytics, AI insights) with one click and download
 
 The system is built for **FreightLens**: professional, data-driven, and hackathon-ready.
@@ -99,7 +101,7 @@ flowchart TB
     subgraph ui [Streamlit UI]
         App[app.py]
         Reports[Reports: Dashboard, Shipment, Ops, Finance, Fraud]
-        ControlTower[Control Tower: Overview, Shipment, Carrier, Route, Finance, Fraud, AI Copilot, Report]
+        ControlTower[Control Tower: Overview, Shipment, Carrier, Route, Finance, Fraud, Freggie Assist, Report]
     end
     LR --> Load
     POD --> Load
@@ -254,7 +256,7 @@ sequenceDiagram
     ├── operations.py        # Operational Intelligence (carrier, driver, lane, delay, POD)
     ├── finance.py            # Financial Intelligence (exposure, heatmap, charges)
     ├── fraud.py              # Fraud & Compliance (flagged shipments)
-    ├── control_tower_views.py # Control Tower: Overview, Shipment, Carrier, Route, Finance, Fraud, AI Copilot
+    ├── control_tower_views.py # Control Tower: Overview, Shipment, Carrier, Route, Finance, Fraud, Freggie Assist
     └── report_panel.py       # Generate Intelligence Report panel (progress + PDF download)
 ```
 
@@ -280,7 +282,7 @@ sequenceDiagram
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/abizer007/AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent_LogisticsNow-Hackathon.git
    cd AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent_LogisticsNow-Hackathon
    ```
 
@@ -472,7 +474,7 @@ The generator produces realistic patterns: popular routes (e.g. Mumbai–Pune), 
 - **Reports** (heading)  
   - **View** dropdown: Executive Dashboard, Shipment Risk Analysis, Operational Intelligence, Financial Intelligence, Fraud & Compliance
 - **Navigation** (heading)  
-  - Buttons: Overview, Shipment Intelligence, Carrier Analytics, Route Intelligence, Financial Risk, Fraud Detection, AI Logistics Copilot, **Generate Intelligence Report**
+  - Buttons: Overview, Shipment Intelligence, Carrier Analytics, Route Intelligence, Financial Risk, Fraud Detection, Freggie Assist, **Generate Intelligence Report**
 
 Sidebar theme: white background, light green/soft grey nav buttons, green active state; styling in `styles/sidebar.css` and `.streamlit/config.toml`.
 
@@ -492,7 +494,7 @@ Sidebar theme: white background, light green/soft grey nav buttons, green active
 - **Route Intelligence:** Most delayed routes; Most risky routes; Highest volume routes.
 - **Financial Risk:** Cost leakage (invoice/weight/package mismatch); Potential Recoverable Amount; heatmap table.
 - **Fraud Detection:** Drivers with highest risk; Carriers with repeated mismatches; Routes with frequent delays.
-- **AI Logistics Copilot:** Rule-based Q&A (e.g. carriers causing delays, risky routes, shipments needing investigation).
+- **Freggie Assist:** Rule-based Q&A (e.g. carriers causing delays, risky routes, shipments needing investigation).
 
 ---
 
