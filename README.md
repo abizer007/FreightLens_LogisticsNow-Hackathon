@@ -20,6 +20,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Product Features](#product-features)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Tech Stack](#tech-stack)
@@ -53,6 +54,24 @@ The **FreightLens Intelligence Console** is a production-style prototype for log
 - **Enterprise Intelligence Report** – generate a full multi-section PDF report (executive summary, shipment/carrier/route/financial/fraud analytics, AI insights) with one click and download
 
 The system is built for **FreightLens**: professional, data-driven, and hackathon-ready.
+
+---
+
+## Product Features
+
+This section summarizes the complete FreightLens feature set in one place.
+
+- **Multi-document ingestion:** Upload LR, POD, and Invoice CSVs and process them in a single workflow.
+- **Data quality engine:** Validate and normalize logistics records with bounds checks, consistency checks, and cleaning.
+- **Automated reconciliation:** Merge records by `Shipment_ID` and surface quantity, amount, weight, delay, and POD/signature mismatches.
+- **Risk intelligence:** Compute weighted risk scores and classify shipments into Low, Medium, High, and Critical.
+- **Fraud and compliance detection:** Flag duplicate invoices, repeated carrier/driver anomalies, suspicious cost patterns, and repeated missing PODs.
+- **Operational command center:** Analyze risk by carrier, driver, route, delay trends, and POD compliance in dedicated views.
+- **Financial exposure analytics:** Track invoice leakage drivers and summarize potential recoverable value.
+- **AI investigation support:** Generate structured shipment investigations and actionable recommendations for operations teams.
+- **Control Tower experience:** Navigate modern dashboard views across overview, shipment, carrier, route, financial, fraud, and copilot surfaces.
+- **One-click intelligence report:** Generate and download a branded multi-section PDF report for leadership and audit readiness.
+- **Enterprise UI branding:** Uses FreightLens theme, responsive SaaS-style sidebar, compact responsive top banner, and product favicon.
 
 ---
 
@@ -194,6 +213,8 @@ sequenceDiagram
 ├── generate_datasets.py      # CLI to generate LR, POD, Invoice CSVs
 ├── requirements.txt          # Python dependencies
 ├── logo-Photoroom.png        # FreightLens logo (sidebar)
+├── assets/
+│   └── web_banner.png        # Responsive top banner image
 ├── run_app.bat               # Windows batch script to run app
 ├── run_app.ps1               # PowerShell script to run app
 ├── README.md                 # This file

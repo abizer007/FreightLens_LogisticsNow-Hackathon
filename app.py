@@ -11,6 +11,7 @@ _ROOT = Path(__file__).resolve().parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
+import base64
 import hashlib
 import logging
 from io import BytesIO
@@ -79,9 +80,52 @@ logger = logging.getLogger(__name__)
 # -----------------------------
 # HEADER (banner or fallback text)
 # -----------------------------
-_banner_path = _ROOT / "assets" / "banner_d1.jpg"
+_BANNER_CSS = """
+<style>
+.freightlens-banner {
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  position: relative;
+}
+.freightlens-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.freightlens-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+}
+@media (max-width: 1200px) {
+  .freightlens-banner { height: 220px; }
+}
+@media (max-width: 900px) {
+  .freightlens-banner { height: 190px; }
+}
+@media (max-width: 600px) {
+  .freightlens-banner { height: 160px; }
+}
+</style>
+"""
+_banner_path = _ROOT / "assets" / "web_banner.png"
 if _banner_path.exists():
-    st.image(str(_banner_path), use_container_width=True)
+    _banner_bytes = _banner_path.read_bytes()
+    _banner_b64 = base64.standard_b64encode(_banner_bytes).decode("ascii")
+    _banner_mime = "image/png" if _banner_path.suffix.lower() == ".png" else "image/jpeg"
+    st.markdown(_BANNER_CSS, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="freightlens-banner"><img src="data:{_banner_mime};base64,{_banner_b64}" alt="FreightLens" /></div>',
+        unsafe_allow_html=True,
+    )
 else:
     st.markdown("""
     <style>
