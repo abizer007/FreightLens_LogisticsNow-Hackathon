@@ -77,19 +77,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # -----------------------------
-# HEADER
+# HEADER (banner or fallback text)
 # -----------------------------
-st.markdown("""
-<style>
-.main-title { font-size:38px; font-weight:bold; color:#2E7D32; }
-.sub-title { font-size:18px; color:#1F2937; }
-</style>
-""", unsafe_allow_html=True)
-st.markdown('<p class="main-title">FreightLens Intelligence Console</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-title">AI Powered LR–POD–Invoice Reconciliation System</p>', unsafe_allow_html=True)
-# Brand design system and tagline (FreightLens)
+_banner_path = _ROOT / "assets" / "banner_d1.jpg"
+if _banner_path.exists():
+    st.image(str(_banner_path), use_container_width=True)
+else:
+    st.markdown("""
+    <style>
+    .main-title { font-size:38px; font-weight:bold; color:#2E7D32; }
+    .sub-title { font-size:18px; color:#1F2937; }
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown('<p class="main-title">FreightLens Intelligence Console</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">AI Powered LR–POD–Invoice Reconciliation System</p>', unsafe_allow_html=True)
+    st.markdown(BRAND_TAGLINE_HTML, unsafe_allow_html=True)
 st.markdown(BRAND_CSS, unsafe_allow_html=True)
-st.markdown(BRAND_TAGLINE_HTML, unsafe_allow_html=True)
 st.divider()
 
 # -----------------------------
