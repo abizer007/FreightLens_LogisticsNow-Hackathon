@@ -287,11 +287,9 @@ def _compute_kpis(merged: pd.DataFrame, fraud_flags: pd.DataFrame) -> Dict[str, 
 def _add_logo(story: List[Any], styles: Dict[str, ParagraphStyle]) -> None:
     project_root = Path(__file__).resolve().parent.parent
     candidates = [
+        project_root / "freightlens-logo.png",
         project_root / "assets" / "full_logo.png",
         project_root / "assets" / "logo.png",
-        Path(
-            r"C:\Users\abize\.cursor\projects\d-AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent-LogisticsNow-Hackathon\assets\c__Users_abize_AppData_Roaming_Cursor_User_workspaceStorage_5e74356ad75a838d562fb704a2cffa84_images_logo-Photoroom-6c6c3e4b-aec4-4013-ba5c-309b1d771057.png"
-        ),
     ]
     for path in candidates:
         if path.exists():

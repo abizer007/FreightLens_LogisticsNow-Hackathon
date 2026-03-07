@@ -52,7 +52,7 @@ except ModuleNotFoundError:
 # -----------------------------
 # PAGE CONFIG (must be first Streamlit command)
 # -----------------------------
-_favicon_path = _ROOT / "WhatsApp Image 2026-03-07 at 8.20.05 PM.jpeg"
+_favicon_path = _ROOT / "freightlens-logo.jpeg"
 _page_icon = str(_favicon_path) if _favicon_path.exists() else "📊"
 st.set_page_config(
     page_title="FreightLens Dashboard",

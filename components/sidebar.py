@@ -72,15 +72,9 @@ def _resolve_sidebar_logo_path() -> Path | None:
     """Resolve logo path for sidebar title replacement."""
     project_root = Path(__file__).resolve().parent.parent
     candidates = [
-        # User-uploaded root logo file
-        project_root / "logo-Photoroom.png",
-        # Preferred project-local assets
+        project_root / "freightlens-logo.png",
         project_root / "assets" / "full_logo.png",
         project_root / "assets" / "logo.png",
-        # Uploaded asset path available in this environment
-        Path(
-            r"C:\Users\abize\.cursor\projects\d-AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent-LogisticsNow-Hackathon\assets\c__Users_abize_AppData_Roaming_Cursor_User_workspaceStorage_5e74356ad75a838d562fb704a2cffa84_images_logo-Photoroom-6c6c3e4b-aec4-4013-ba5c-309b1d771057.png"
-        ),
     ]
     for path in candidates:
         if path.exists():

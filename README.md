@@ -212,7 +212,7 @@ sequenceDiagram
 ├── app.py                    # Streamlit entry; upload, pipeline, sidebar + navigation
 ├── generate_datasets.py      # CLI to generate LR, POD, Invoice CSVs
 ├── requirements.txt          # Python dependencies
-├── logo-Photoroom.png        # FreightLens logo (sidebar)
+├── freightlens-logo.png      # FreightLens logo (sidebar, PDF report)
 ├── assets/
 │   └── web_banner.png        # Responsive top banner image
 ├── run_app.bat               # Windows batch script to run app
