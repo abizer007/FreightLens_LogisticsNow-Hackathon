@@ -6,7 +6,7 @@
 
 **FreightLens** is the official product name.
 
-**Repository:** [github.com/abizer007/AI-Document-Intelligence-LR-POD-Invoice-Matching-Agent_LogisticsNow-Hackathon](https://github.com/abizer007/FreightLens_LogisticsNow-Hackathon)
+**Repository:** [github.com/abizer007/FreightLens_LogisticsNow-Hackathon](https://github.com/abizer007/FreightLens_LogisticsNow-Hackathon)
 
 ---
 
