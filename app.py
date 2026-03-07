@@ -102,7 +102,6 @@ _BANNER_CSS = """
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.1));
   border-radius: 12px;
 }
 @media (max-width: 1200px) {
