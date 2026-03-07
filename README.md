@@ -72,7 +72,8 @@ This section summarizes the complete FreightLens feature set in one place.
 - **Operational command center:** Analyze risk by carrier, driver, route, delay trends, and POD compliance in dedicated views.
 - **Financial exposure analytics:** Track invoice leakage drivers and summarize potential recoverable value.
 - **AI investigation support:** Generate structured shipment investigations and actionable recommendations for operations teams.
-- **Control Tower experience:** Navigate modern dashboard views across overview, shipment, carrier, route, financial, fraud, and copilot surfaces.
+- **Control Tower experience:** Navigate modern dashboard views across overview, shipment, carrier, route, financial, fraud, and Freggie Assist.
+- **Freggie Assist:** In-app AI assistant for logistics Q&A—ask about carriers causing delays, risky routes, shipments needing investigation, and get rule-based answers from your data.
 - **One-click intelligence report:** Generate and download a branded multi-section PDF report for leadership and audit readiness.
 - **Enterprise UI branding:** Uses FreightLens theme, responsive SaaS-style sidebar, compact responsive top banner, and product favicon.
 
